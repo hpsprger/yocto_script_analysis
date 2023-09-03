@@ -24,4 +24,8 @@ fi
 
 source $ROOT/sources/core/oe-init-build-env "$@" # source /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/oe-init-build-env
 												 # 执行脚本  /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/oe-init-build-env
-												 # $@ 为空 
+												 # $@ 为空
+												 # 可以参考 5:【vrygd】嵌入式linux系统开发:基于Yocto Project 
+												 # poky是Yocto项目为开发者提供的一个开发样例
+												 # sources 目录下的 core，其实就是yocto的参考工程poly目录的改名 ==> poly 可以改名字，我下载的工程现在就改为core这个名字
+												 # 所以 sources/core 就是 本脚本创建的yocto工程目录了
