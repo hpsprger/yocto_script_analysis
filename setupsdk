@@ -1,20 +1,27 @@
-if [ -n "$BASH_SOURCE" ]; then
-	export ROOT=$(readlink -f $(dirname "$BASH_SOURCE"))
+if [ -n "$BASH_SOURCE" ]; then # $BASH_SOURCE 为空 ==> 走这个分支 ==> if [ -n str ] ==> 当str非空的时候为true
+	                           # BASH_SOURCE[0] 等价于 BASH_SOURCE，BASH_SOURCE取得当前执行的 shell 文件所在的路径及文件名
+							   # source setupsdk ==> $BASH_SOURCE 值是 setupsdk
+	                           # dirname xxx ==> 返回值是 xxx 所在的目录的路径
+	export ROOT=$(readlink -f $(dirname "$BASH_SOURCE")) # readlink -f 找出符号链接 最终的文件位置 ==> ROOT=/home/hpsp/rock_space/xen_yocto/yocto_script_analysis
 elif [ -n "$ZSH_NAME" ]; then
 	export ROOT=$(readlink -f $(dirname "$0"))
 else
 	export ROOT=$(readlink -f ${PWD})
 fi
 
-export TEMPLATECONF=$ROOT/sources/meta-petalinux/conf
+export TEMPLATECONF=$ROOT/sources/meta-petalinux/conf # TEMPLATECONF=/home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/meta-petalinux/conf
 # Use the internal layer, if it's checked out
-if [ -d $ROOT/sources/meta-xilinx-internal ]; then
+if [ -d $ROOT/sources/meta-xilinx-internal ]; then  # -d filename 如果filename为目录，则为真 ==> 
+													# 不存在 /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/meta-xilinx-internal
+													# 该分支走不进来
     export TEMPLATECONF=$ROOT/sources/meta-xilinx-internal/conf
 fi
 export PATH=$PATH:$ROOT/scripts
-if [ -d $ROOT/sources/meta-xilinx-internal/scripts ]; then
-        export PATH=$PATH:$ROOT/sources/meta-xilinx-internal/scripts
+if [ -d $ROOT/sources/meta-xilinx-internal/scripts ]; then # 不存在 /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/meta-xilinx-internal/scripts
+														   # 该分支走不进来
+    export PATH=$PATH:$ROOT/sources/meta-xilinx-internal/scripts
 fi
-echo "==>$BASH_SOURCE"
-echo "source $ROOT/sources/core/oe-init-build-env $@"
-source $ROOT/sources/core/oe-init-build-env "$@"
+
+source $ROOT/sources/core/oe-init-build-env "$@" # source /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/oe-init-build-env
+												 # 执行脚本  /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/oe-init-build-env
+												 # $@ 为空 
