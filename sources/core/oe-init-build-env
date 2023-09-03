@@ -14,8 +14,8 @@
 # when being sourced.  To workaround the shell limitation use "set <builddir>"
 # prior to sourcing this script.
 #
-if [ -n "$BASH_SOURCE" ]; then
-    THIS_SCRIPT=$BASH_SOURCE
+if [ -n "$BASH_SOURCE" ]; then  # $BASH_SOURCE" ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/oe-init-build-env
+    THIS_SCRIPT=$BASH_SOURCE    # 走这个分支 ==> $THIS_SCRIPT  ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/oe-init-build-env
 elif [ -n "$ZSH_NAME" ]; then
     THIS_SCRIPT=$0
 else
@@ -27,23 +27,37 @@ else
     fi
 fi
 
-if [ -n "$BBSERVER" ]; then
+if [ -n "$BBSERVER" ]; then # $BBSERVER 为空，走不进去下面的分支
     unset BBSERVER
 fi
 
-if [ -z "$ZSH_NAME" ] && [ "$0" = "$THIS_SCRIPT" ]; then
+# $ZSH_NAME     ==> 为空
+# $0            ==> -bash
+# $THIS_SCRIPT  ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/oe-init-build-env
+if [ -z "$ZSH_NAME" ] && [ "$0" = "$THIS_SCRIPT" ]; then # 走不进去下面的分支
     echo "Error: This script needs to be sourced. Please run as '. $THIS_SCRIPT'" >&2
     exit 1
 fi
 
-if [ -z "$OEROOT" ]; then
-    OEROOT=$(dirname "$THIS_SCRIPT")
-    OEROOT=$(readlink -f "$OEROOT")
+# $OEROOT ==> 为空 
+# -z xx ==> 如果string 为空，则为TRUE
+if [ -z "$OEROOT" ]; then  # $OEROOT 为空, 能进入下面的这个分支 
+    OEROOT=$(dirname "$THIS_SCRIPT") 
+    OEROOT=$(readlink -f "$OEROOT")  # OEROOT ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core ==> 也就是yocto工程的根目录
 fi
 unset THIS_SCRIPT
 
-export OEROOT
-echo "=====>. $OEROOT/scripts/oe-buildenv-internal && TEMPLATECONF=$TEMPLATECONF $OEROOT/scripts/oe-setup-builddir "
+export OEROOT  # 导出 OEROOT变量，做为环境变量 ==>  /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core  ==> 也就是yocto工程的根目录
+
+# . 表示执行
+# $OEROOT/scripts/oe-buildenv-internal ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/scripts/oe-buildenv-internal
+# $TEMPLATECONF ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/meta-petalinux/conf ==> setupsdk文件中配置的
+# $OEROOT/scripts/oe-setup-builddir ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/scripts/oe-setup-builddir
+
+# 也就是执行 .   /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/scripts/oe-buildenv-internal  ==> 这是一个文件 ==> 下面看这个文件
+#                 && 
+#               /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/meta-petalinux/conf              ==> 这是一个目录 
+#               /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/scripts/oe-setup-builddir   ==> 这是一个文件  ==> 下面看这个文件
 . $OEROOT/scripts/oe-buildenv-internal &&
     TEMPLATECONF="$TEMPLATECONF" $OEROOT/scripts/oe-setup-builddir || {
     unset OEROOT
@@ -51,5 +65,8 @@ echo "=====>. $OEROOT/scripts/oe-buildenv-internal && TEMPLATECONF=$TEMPLATECONF
 }
 unset OEROOT
 
+#  $BUILDDIR ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/build
+#  -z xxx ==> xxx 不为空的话则为真 
+#  cd "$BUILDDIR" ==> cd /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/build
 [ -z "$BUILDDIR" ] || cd "$BUILDDIR"
 
