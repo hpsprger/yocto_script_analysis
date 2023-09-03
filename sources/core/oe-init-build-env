@@ -66,7 +66,7 @@ export OEROOT  # 导出 OEROOT变量，做为环境变量 ==>  /home/hpsp/rock_s
 unset OEROOT
 
 #  $BUILDDIR ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/build
-#  -z xxx ==> xxx 不为空的话则为真 
+#  -z xxx ==> 如果 xxx 为空 则为TRUE
 #  cd "$BUILDDIR" ==> cd /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/build
 [ -z "$BUILDDIR" ] || cd "$BUILDDIR"
 

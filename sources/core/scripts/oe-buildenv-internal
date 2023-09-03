@@ -7,6 +7,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 
+# ! ==> 逻辑否
+# 标准输出(0) 标准输出(1) 错误输出(2) ==> 标准输入默认是键盘，标准输出和错误输出默认是屏幕
+# 2>&1:将文件描述符2重定向到文件描述符1，此时标准输出是屏幕。该指令的效果是标准输出和错误输出都输出到屏幕
+# return命令会使一个函数返回,会返回一个单一的数字参数,而这个数字参数在调用这个函数的脚本是可见的,如果没有指定返回参数,return在默认情况下会返回上一次命令的返回代码
+# return 的作用是退出当前函数，不退出整个脚本
 if ! $(return >/dev/null 2>&1) ; then
     echo 'oe-buildenv-internal: error: this script must be sourced'
     echo ''
@@ -18,17 +23,23 @@ if ! $(return >/dev/null 2>&1) ; then
     exit 2
 fi
 
+#  -z xxx ==> 如果 string xxx 为空，则为TRUE
+# $OEROOT ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core
 # It is assumed OEROOT is already defined when this is called
 if [ -z "$OEROOT" ]; then
     echo >&2 "Error: OEROOT is not defined!"
     return 1
 fi
 
+#  -z xxx ==> 如果 string xxx 为空，则为TRUE
+# $OE_SKIP_SDK_CHECK ==>  为空 
+# $OECORE_SDK_VERSION ==>  为空 
 if [ -z "$OE_SKIP_SDK_CHECK" ] && [ -n "$OECORE_SDK_VERSION" ]; then
     echo >&2 "Error: The OE SDK/ADT was detected as already being present in this shell environment. Please use a clean shell when sourcing this environment script."
     return 1
 fi
 
+# 下面语句的作用是检查python的版本
 # We potentially have code that doesn't parse correctly with older versions 
 # of Python, and rather than fixing that and being eternally vigilant for 
 # any other new feature use, just check the version here.
@@ -39,9 +50,13 @@ if [ "$py_v35_check" != "True" ]; then
 fi
 unset py_v35_check
 
-if [ -z "$BDIR" ]; then
-    if [ -z "$1" ]; then
-        BDIR="build"
+# [ -z STRING ] “STRING” 的长度为零则为真。
+# [ -n STRING ] or [ STRING ] “STRING” 的长度为非零non-zero 则为真
+# $BDIR ==> 为空
+# $1 ==> 为空
+if [ -z "$BDIR" ]; then # $BDIR ==> 为空 ==> 走下面的分支
+    if [ -z "$1" ]; then # $1 ==> 为空 ==> 走下面的分支
+        BDIR="build"  # BDIR = "build" 
     else
         BDIR="$1"
         if [ "$BDIR" = "/" ]; then
@@ -61,34 +76,70 @@ if [ -z "$BDIR" ]; then
             return 1
         fi
     fi
-    if [ -n "$2" ]; then
+    if [ -n "$2" ]; then # $2 为空，所以走不进去下面的分支
         BITBAKEDIR="$2"
     fi
 fi
+
+# 代码如下:
+# file=/dir1/dir2/dir3/my.file.txt
+# 可以用${ }分别替换得到不同的值： ==> file是对应的要处理的变量名
+# ${file#*/}：删掉第一个 / 及其左边的字符串：dir1/dir2/dir3/my.file.txt
+# ${file##*/}：删掉最后一个 /  及其左边的字符串：my.file.txt
+# ${file#*.}：删掉第一个 .  及其左边的字符串：file.txt
+# ${file##*.}：删掉最后一个 .  及其左边的字符串：txt
+# ${file%/*}：删掉最后一个  /  及其右边的字符串：/dir1/dir2/dir3
+# ${file%%/*}：删掉第一个 /  及其右边的字符串：(空值)
+# ${file%.*}：删掉最后一个  .  及其右边的字符串：/dir1/dir2/dir3/my.file
+# ${file%%.*}：删掉第一个  .   及其右边的字符串：/dir1/dir2/dir3/my
+# 记忆的方法为：
+# # 是 去掉左边（键盘上#在 $ 的左边）
+# %是去掉右边（键盘上% 在$ 的右边）
+# 单一符号是最小匹配；两个符号是最大匹配
+# ${file:0:5}：提取最左边的 5 个字节：/dir1
+# ${file:5:5}：提取第 5 个字节右边的连续5个字节：/dir2
+# 也可以对变量值里的字符串作替换：
+# ${file/dir/path}：将第一个dir 替换为path：/path1/dir2/dir3/my.file.txt
+# ${file//dir/path}：将全部dir 替换为 path：/path1/path2/path3/my.file.txt
+# 
+# ${BDIR#/ ==> build
+# $BDIR    ==> build
+# 
 if [ "${BDIR#/}" != "$BDIR" ]; then
     BUILDDIR="$BDIR"
 else
+    # BUILDDIR ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/build
     BUILDDIR="$(pwd)/$BDIR"
 fi
 unset BDIR
 
-if [ -z "$BITBAKEDIR" ]; then
-    BITBAKEDIR="$OEROOT/bitbake$BBEXTRA"
+# $BITBAKEDIR ==> 为空
+if [ -z "$BITBAKEDIR" ]; then  #  $BITBAKEDIR ==> 为空 ==> 可以走入下面的分支
+    BITBAKEDIR="$OEROOT/bitbake$BBEXTRA"  # BITBAKEDIR ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/bitbake
+    # test -d xxx ==> 测试 xxx是否为目录
+    # xxx是目录的话，就不执行 || 后面的语句，否则的话，执行 || 后面的语句，为BITBAKEDIR重新赋值
     test -d "$BITBAKEDIR" || BITBAKEDIR="$OEROOT/../bitbake$BBEXTRA"
+    # 最终 BITBAKEDIR ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/bitbake
 fi
 
+# echo $BITBAKEDIR ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/bitbake
+# echo $BUILDDIR ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/build
+# echo $BBPATH  ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/build
 BITBAKEDIR=$(readlink -f "$BITBAKEDIR")
 BUILDDIR=$(readlink -f "$BUILDDIR")
 BBPATH=$BUILDDIR
-
 export BBPATH
 
+# if -d ==> 如果filename为目录，则为真 
+# ! 进行逻辑取反 
+# if [ ! -d "$BITBAKEDIR" ] ==> 也就是如果 $BITBAKEDIR 不是一个目录，则执行下面的分支
 if [ ! -d "$BITBAKEDIR" ]; then
     echo >&2 "Error: The bitbake directory ($BITBAKEDIR) does not exist!  Please ensure a copy of bitbake exists at this location or specify an alternative path on the command line"
     return 1
 fi
 
 # Add BitBake's library to PYTHONPATH
+# echo  $PYTHONPATH ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/bitbake/lib:/home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/bitbake/lib:/home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/bitbake/lib:/home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/bitbake/lib:/home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/bitbake/lib:/home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/bitbake/lib:/home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/bitbake/lib:
 PYTHONPATH=$BITBAKEDIR/lib:$PYTHONPATH
 export PYTHONPATH
 
