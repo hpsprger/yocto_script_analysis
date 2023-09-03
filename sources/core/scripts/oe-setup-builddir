@@ -7,6 +7,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 
+#  -z xxx ==> 如果 xxx 为空 则为TRUE
+# $BUILDDIR ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/build
 if [ -z "$BUILDDIR" ]; then
     echo >&2 "Error: The build directory (BUILDDIR) must be set!"
     exit 1
@@ -20,6 +22,7 @@ if [ "$1" = '--help' -o "$1" = '-h' ]; then
     exit 2
 fi
 
+#  创建目录 ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/build/conf
 mkdir -p "$BUILDDIR/conf"
 
 if [ ! -d "$BUILDDIR" ]; then
@@ -36,23 +39,35 @@ fi
 chmod -st "$BUILDDIR" 2>/dev/null || echo "WARNING: unable to chmod $BUILDDIR"
 chmod -st "$BUILDDIR/conf" 2>/dev/null || echo "WARNING: unable to chmod $BUILDDIR/conf"
 
+# $BUILDDIR ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/build
 cd "$BUILDDIR"
 
+# $BUILDDIR/conf/templateconf.cfg ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/build/conf/templateconf.cfg
+# -f ==> 如果目标为普通文件的话 则为真 
 if [ -f "$BUILDDIR/conf/templateconf.cfg" ]; then
-    TEMPLATECONF=$(cat "$BUILDDIR/conf/templateconf.cfg")
+    # TEMPLATECONF ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/meta-petalinux/conf
+    TEMPLATECONF=$(cat "$BUILDDIR/conf/templateconf.cfg") # 对应的文件内容是 /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/meta-petalinux/conf
 fi
 
-. $OEROOT/.templateconf
+# $OEROOT/.templateconf  ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/core/.templateconf
+# $OEROOT/.templateconf 的 内容如下:
+#               # Template settings
+#               TEMPLATECONF=${TEMPLATECONF:-meta-poky/conf}
+. $OEROOT/.templateconf 
 
-if [ ! -f "$BUILDDIR/conf/templateconf.cfg" ]; then
+# $BUILDDIR/conf/templateconf.cfg ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/build/conf/templateconf.cfg
+if [ ! -f "$BUILDDIR/conf/templateconf.cfg" ]; then  # 这个要 不是一个常规文件的话 则执行下面的，这里不会走入下面的分支
     echo "$TEMPLATECONF" >"$BUILDDIR/conf/templateconf.cfg"
 fi
 
 # 
 # $TEMPLATECONF can point to a directory for the template local.conf & bblayers.conf
 #
-if [ -n "$TEMPLATECONF" ]; then
-    if [ ! -d "$TEMPLATECONF" ]; then
+# $TEMPLATECONF ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/meta-petalinux/conf
+# -n string 如果 string长度非零，则为真 [ -n "$myvar" ]
+if [ -n "$TEMPLATECONF" ]; then  # 走进下面的分支
+    # -d filename 如果 filename为目录，则为真 [ -d /tmp/mydir ]
+    if [ ! -d "$TEMPLATECONF" ]; then # 下面的分支走不进去
         # Allow TEMPLATECONF=meta-xyz/conf as a shortcut
         if [ -d "$OEROOT/$TEMPLATECONF" ]; then
             TEMPLATECONF="$OEROOT/$TEMPLATECONF"
@@ -62,16 +77,24 @@ if [ -n "$TEMPLATECONF" ]; then
             exit 1
         fi
     fi
+    # echo $OECORELAYERCONF  ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/meta-petalinux/conf/bblayers.conf.sample
+    # echo $OECORELOCALCONF  ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/meta-petalinux/conf/local.conf.sample
+    # echo $OECORENOTESCONF  ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/meta-petalinux/conf/conf-notes.txt
     OECORELAYERCONF="$TEMPLATECONF/bblayers.conf.sample"
     OECORELOCALCONF="$TEMPLATECONF/local.conf.sample"
     OECORENOTESCONF="$TEMPLATECONF/conf-notes.txt"
 fi
 
 unset SHOWYPDOC
-if [ -z "$OECORELOCALCONF" ]; then
+
+# -z xx ==> 如果string 为空，则为TRUE
+if [ -z "$OECORELOCALCONF" ]; then  # 走不进去下面的分支
     OECORELOCALCONF="$OEROOT/meta/conf/local.conf.sample"
 fi
-if [ ! -r "$BUILDDIR/conf/local.conf" ]; then
+
+# -r 判断文件是否可读 
+# ! 逻辑取反
+if [ ! -r "$BUILDDIR/conf/local.conf" ]; then # 下面的分支走不进去
     cat <<EOM
 You had no conf/local.conf file. This configuration file has therefore been
 created for you with some default values. You may wish to edit it to, for
@@ -83,10 +106,12 @@ EOM
     SHOWYPDOC=yes
 fi
 
-if [ -z "$OECORELAYERCONF" ]; then
+# -z xx ==> 如果string 为空，则为TRUE
+if [ -z "$OECORELAYERCONF" ]; then  # 下面的分支走不进去
     OECORELAYERCONF="$OEROOT/meta/conf/bblayers.conf.sample"
 fi
-if [ ! -r "$BUILDDIR/conf/bblayers.conf" ]; then
+
+if [ ! -r "$BUILDDIR/conf/bblayers.conf" ]; then  # 下面的分支走不进去
     cat <<EOM
 You had no conf/bblayers.conf file. This configuration file has therefore been
 created for you with some default values. To add additional metadata layers
@@ -109,7 +134,10 @@ unset OECORELOCALCONF
 unset OECORELAYERCONF
 
 # Ending the first-time run message. Show the YP Documentation banner.
-if [ ! -z "$SHOWYPDOC" ]; then
+# -z xx ==> 如果string 为空，则为TRUE
+# echo $SHOWYPDOC  ==> 为空
+if [ ! -z "$SHOWYPDOC" ]; then # 下面的分支走不进去
+    echo 22222
     cat <<EOM
 The Yocto Project has extensive documentation about OE including a reference
 manual which can be found at:
@@ -122,8 +150,12 @@ EOM
 #    unset SHOWYPDOC
 fi
 
-if [ -z "$OECORENOTESCONF" ]; then
+# -z xx ==> 如果string 为空，则为TRUE
+# echo $OECORENOTESCONF  ==> /home/hpsp/rock_space/xen_yocto/yocto_script_analysis/sources/meta-petalinux/conf/conf-notes.txt
+if [ -z "$OECORENOTESCONF" ]; then  # 下面的分支走不进去
     OECORENOTESCONF="$OEROOT/meta/conf/conf-notes.txt"
 fi
+
 [ ! -r "$OECORENOTESCONF" ] || cat $OECORENOTESCONF
+
 unset OECORENOTESCONF
